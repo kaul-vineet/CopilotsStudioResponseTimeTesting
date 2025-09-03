@@ -110,10 +110,10 @@ async def ask_question(copilot_client, conversation_id):
             if query in ["exit", "quit"]:
                 timestamp_str = time.strftime("%Y-%m-%d_%H-%M-%S")
                 # Construct the filename with a desired extension
-                filename = f"my_file_{timestamp_str}.csv"
+                filename = f"{conversation_id}_{timestamp_str}.csv"
                 # index=False prevents writing the DataFrame index as a column in the CSV
                 resultsdf.to_csv(f"./data/{filename}", index=False)
-                print(f"CSV file '{filename}' created successfully using Pandas.")
+                print(f"CSV file '{filename}' created successfully.")
                 print("Exiting...")
                 return
             if query:
