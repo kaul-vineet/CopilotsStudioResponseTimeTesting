@@ -1,4 +1,24 @@
 what is mcs server? 
 explain llm in details?
 what is full form of mcs?
+What is the Model Context Protocol (MCP)?
+How does MCP act as a universal connector?
+What are the key components of MCP architecture?
+What is the role of the Host in MCP architecture?
+What is the role of the Client in MCP architecture?
+What is the role of the Server in MCP architecture?
+How did MCP solve the M×N integration problem?
+What is the M×N integration problem?
+How does MCP reduce integration effort from M×N to M+N?
+What are the benefits of using MCP?
+How does MCP simplify integration between AI models and external tools?
+Why does MCP reduce the need for custom code for each new pairing?
+How does MCP provide a scalable architecture for expanding AI capabilities?
+What is the significance of MCP in AI model interactions?
+How does MCP standardize connections between AI applications and tools?
+What challenges did MCP address in AI model integration?
+How does MCP maintain a scalable architecture?
+What is the impact of MCP on AI model efficiency?
+How does MCP enhance the maintainability of AI systems?
+What are the advantages of implementing MCP in AI environments?
 exit
