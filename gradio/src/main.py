@@ -29,6 +29,7 @@ from microsoft_agents.copilotstudio.client import (
 )
 
 from .local_token_cache import LocalTokenCache
+
 logger = logging.getLogger(__name__)
 load_dotenv()
 TOKEN_CACHE = LocalTokenCache("./.local_token_cache.json")
@@ -73,7 +74,6 @@ def acquire_token(settings: ConnectionSettings, app_client_id, tenant_id):
 
     return token
 
-
 def create_client():
     settings = ConnectionSettings(
         environment_id=environ.get("COPILOTSTUDIOAGENT__ENVIRONMENTID"),
@@ -97,9 +97,23 @@ async def ainput(string: str) -> str:
     )
     return await asyncio.get_event_loop().run_in_executor(None, sys.stdin.readline)
 
-
-async def ask_question(copilot_client, conversation_id):
-    # query = (await ainput("\n>>>: ")).lower().strip()
+    
+async def main():
+    copilot_client = create_client()
+    act = copilot_client.start_conversation(True)
+    print("\nSuggested Actions: ")
+    async for action in act:
+        if action.text:
+            print(action.text)
+    await ask_question(copilot_client, action.conversation.id) 
+    
+async def ask_question():
+    copilot_client = create_client()
+    act = copilot_client.start_conversation(True)
+    print("\nSuggested Actions: ")
+    async for action in act:
+        if action.text:
+            print(action.text)
     with open('./data/input.txt', 'r') as file:
     # Iterate through each line in the file
         for line in file:
@@ -109,7 +123,7 @@ async def ask_question(copilot_client, conversation_id):
             if query in ["exit", "quit"]:
                 timestamp_str = time.strftime("%Y-%m-%d_%H-%M-%S")
                 # Construct the filename with a desired extension
-                filename = f"{conversation_id}_{timestamp_str}.csv"
+                filename = f"{action.conversation.id}_{timestamp_str}.csv"
                 # index=False prevents writing the DataFrame index as a column in the CSV
                 resultsdf.to_csv(f"./data/{filename}", index=False)
                 print(f"CSV file '{filename}' created successfully.")
@@ -117,7 +131,7 @@ async def ask_question(copilot_client, conversation_id):
                 return
             if query:
                 start_time = time.perf_counter()
-                replies = copilot_client.ask_question(query, conversation_id)
+                replies = copilot_client.ask_question(query, action.conversation.id)
                 async for reply in replies:
                     if reply.type == ActivityTypes.message:
                         print(f"\n{reply.text}")
@@ -130,22 +144,16 @@ async def ask_question(copilot_client, conversation_id):
                 end_time = time.perf_counter()
                 elapsed_time = end_time - start_time
                 print(f"Total time taken for both steps: {elapsed_time:.6f} seconds")
-                resultsdf.loc[len(resultsdf)] = [len(resultsdf) + 1, query, reply.text, elapsed_time, conversation_id, len(reply.text)]
-        await ask_question(copilot_client, conversation_id)
-
-async def main():
-    copilot_client = create_client()
-    act = copilot_client.start_conversation(True)
-    demo.launch()
-    print("\nSuggested Actions: ")
-    async for action in act:
-        if action.text:
-            print(action.text)
-    await ask_question(copilot_client, action.conversation.id)
+                resultsdf.loc[len(resultsdf)] = [len(resultsdf) + 1, query, reply.text, elapsed_time, action.conversation.id, len(reply.text)]
+                yield resultsdf
 
 with gr.Blocks() as demo:
-    gr.Markdown("## Response over Time")
+    gr.Markdown("## Temperature over Time")
     # 3. Instantiate a Gradio Plot component
-    gr.LinePlot(resultsdf, x="Serial", y="Time", title="Response Readings")
+    output = gr.LinePlot(resultsdf, x="Serial", y="Time", title="Response Readings")
+    btn = gr.Button(value="Run")
+    gr.Markdown("## Response over Response Lenth")
+    btn.click(ask_question)    
 
-asyncio.run(main())
+if __name__ == "__main__":
+    demo.launch()
