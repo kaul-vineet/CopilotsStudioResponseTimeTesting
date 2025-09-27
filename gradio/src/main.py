@@ -150,10 +150,10 @@ async def ask_question():
 with gr.Blocks() as demo:
     gr.Markdown("## Temperature over Time")
     # 3. Instantiate a Gradio Plot component
-    output = gr.LinePlot(resultsdf, x="Serial", y="Time", title="Response Readings")
+    outputLinePlot = gr.LinePlot(resultsdf, x="Serial", y="Time", title="Response Readings")
     btn = gr.Button(value="Run")
-    gr.Markdown("## Response over Response Lenth")
-    btn.click(ask_question)    
+    gr.Markdown("## Response over Response Length")
+    btn.click(ask_question,output=outputLinePlot)
 
 if __name__ == "__main__":
     demo.launch()

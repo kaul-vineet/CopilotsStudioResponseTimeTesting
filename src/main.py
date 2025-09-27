@@ -17,9 +17,8 @@ import pandas as pd
 import gradio as gr
 import pandas as pd
 import numpy as np
-
+from src.AgentProcessor import AgentProcessor
 from dotenv import load_dotenv
-
 from msal import PublicClientApplication
 
 from microsoft_agents.activity import ActivityTypes, load_configuration_from_env
@@ -29,11 +28,14 @@ from microsoft_agents.copilotstudio.client import (
 )
 
 from .local_token_cache import LocalTokenCache
+
 logger = logging.getLogger(__name__)
 load_dotenv()
 TOKEN_CACHE = LocalTokenCache("./.local_token_cache.json")
 resultsdf = pd.DataFrame(columns=['Serial', 'Query', 'Response', 'Time', 'ConversationId', 'CharLen'])
-
+resultsaidf = pd.DataFrame(columns=['Serial', 'Query', 'PlannerStep', 'Thought', 'Tool', 'Tool Type'])
+statsdf = pd.DataFrame(columns=['Serial', 'Mean', 'Median', 'Max', 'Min', 'Deviation'])
+    
 async def open_browser(url: str):
     logger.debug(f"Opening browser at {url}")
     await asyncio.get_event_loop().run_in_executor(None, lambda: webbrowser.open(url))
@@ -73,7 +75,6 @@ def acquire_token(settings: ConnectionSettings, app_client_id, tenant_id):
 
     return token
 
-
 def create_client():
     settings = ConnectionSettings(
         environment_id=environ.get("COPILOTSTUDIOAGENT__ENVIRONMENTID"),
@@ -82,6 +83,7 @@ def create_client():
         copilot_agent_type=None,
         custom_power_platform_cloud=None,
     )
+    
     token = acquire_token(
         settings,
         app_client_id=environ.get("COPILOTSTUDIOAGENT__AGENTAPPID"),
@@ -97,55 +99,67 @@ async def ainput(string: str) -> str:
     )
     return await asyncio.get_event_loop().run_in_executor(None, sys.stdin.readline)
 
-
-async def ask_question(copilot_client, conversation_id):
-    # query = (await ainput("\n>>>: ")).lower().strip()
-    with open('./data/input.txt', 'r') as file:
-    # Iterate through each line in the file
-        for line in file:
-            # Process each line (e.g., print it, manipulate it)
-            query = line.strip() # .strip() removes leading/trailing whitespace, including the newline character
-            print(f" - {query}")
-            if query in ["exit", "quit"]:
-                timestamp_str = time.strftime("%Y-%m-%d_%H-%M-%S")
-                # Construct the filename with a desired extension
-                filename = f"{conversation_id}_{timestamp_str}.csv"
-                # index=False prevents writing the DataFrame index as a column in the CSV
-                resultsdf.to_csv(f"./data/{filename}", index=False)
-                print(f"CSV file '{filename}' created successfully.")
-                print("Exiting...")
-                return
-            if query:
-                start_time = time.perf_counter()
-                replies = copilot_client.ask_question(query, conversation_id)
-                async for reply in replies:
-                    if reply.type == ActivityTypes.message:
-                        print(f"\n{reply.text}")
-                        if reply.suggested_actions:
-                            for action in reply.suggested_actions.actions:
-                                print(f" - {action.title}")
-                    elif reply.type == ActivityTypes.end_of_conversation:
-                        print("\nEnd of conversation.")
-                        sys.exit(0)
-                end_time = time.perf_counter()
-                elapsed_time = end_time - start_time
-                print(f"Total time taken for both steps: {elapsed_time:.6f} seconds")
-                resultsdf.loc[len(resultsdf)] = [len(resultsdf) + 1, query, reply.text, elapsed_time, conversation_id, len(reply.text)]
-        await ask_question(copilot_client, conversation_id)
-
-async def main():
-    copilot_client = create_client()
-    act = copilot_client.start_conversation(True)
-    demo.launch()
-    print("\nSuggested Actions: ")
-    async for action in act:
-        if action.text:
-            print(action.text)
-    await ask_question(copilot_client, action.conversation.id)
-
+  
 with gr.Blocks() as demo:
-    gr.Markdown("## Response over Time")
-    # 3. Instantiate a Gradio Plot component
-    gr.LinePlot(resultsdf, x="Serial", y="Time", title="Response Readings")
+    with gr.Row():
+        gr.Markdown("# Copilot Studio Agent Performance Studio")
 
-asyncio.run(main())
+    with gr.Tab("Status"):
+        btn = gr.Button(value="Run", interactive=True)
+        process_status = gr.Textbox(label="Status")
+        
+    with gr.Tab("Statistics"):
+        gr.Markdown("## Response Statistics")
+        with gr.Row():
+            mean_output = gr.Number(label="Mean")
+            median_output = gr.Number(label="Median")
+            max_output = gr.Number(label="Max")
+            min_output = gr.Number(label="Min")
+            dev_output = gr.Number(label="Deviation")
+            dev_corr = gr.Number(label="Token Corr")
+            
+        with gr.Row():
+            gr.Markdown("## The agent's responses and the time taken for each response.")
+        with gr.Row():    
+            lineplot_output = gr.LinePlot(resultsdf, x="Serial", y="Time", title="Response Time per Query", x_label="Query Serial", y_label="Response Time (seconds)", width=800, height=400)
+        with gr.Row():
+            # Create a BarPlot aggregating 'value' by 15-second intervals
+            lineplot_output_bin= gr.BarPlot(resultsaidf, x="Serial", y="Times", x_bin="15sec", y_aggregate="mean")
+        with gr.Row():    
+            # Optional: Add a Radio button to dynamically change the bin size
+            bin_size_radio = gr.Radio(["10sec", "15sec", "20sec", "30sec", "1min"], label="Bin Size")
+            bin_size_radio.change(lambda bin_size: gr.BarPlot(x_bin=bin_size), bin_size_radio, lineplot_output_bin)
+
+    with gr.Tab("Data"):
+        with gr.Row():
+            gr.Markdown("## Query Response / Time Data")
+        with gr.Row():
+            frame_output = gr.DataFrame(wrap=True,  # Enable text wrapping within cells
+                                        label="Query Response / Time Data")
+        with gr.Row():
+            gr.Markdown("## LLM Planner Steps Data")
+        with gr.Row():    
+            frameai_output = gr.DataFrame(wrap=True,  # Enable text wrapping within cells
+                                        label="LLM Planner Steps Data")
+
+    proc = AgentProcessor("AgentProcessor", create_client())
+
+    btn.click(
+        fn=proc.ask_question_file,
+        inputs=[],
+        outputs=[btn, 
+                 process_status, 
+                 mean_output, 
+                 median_output, 
+                 max_output, 
+                 min_output, 
+                 dev_output, 
+                 lineplot_output, 
+                 frame_output, 
+                 frameai_output, 
+                 lineplot_output_bin,
+                 dev_corr]
+    )
+    
+if __name__ == "__main__":
+    demo.launch()

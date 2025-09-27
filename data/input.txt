@@ -1,24 +1,77 @@
-what is mcs server? 
-explain llm in details?
-what is full form of mcs?
-What is the Model Context Protocol (MCP)?
-How does MCP act as a universal connector?
-What are the key components of MCP architecture?
-What is the role of the Host in MCP architecture?
-What is the role of the Client in MCP architecture?
-What is the role of the Server in MCP architecture?
-How did MCP solve the M×N integration problem?
-What is the M×N integration problem?
-How does MCP reduce integration effort from M×N to M+N?
-What are the benefits of using MCP?
-How does MCP simplify integration between AI models and external tools?
-Why does MCP reduce the need for custom code for each new pairing?
-How does MCP provide a scalable architecture for expanding AI capabilities?
-What is the significance of MCP in AI model interactions?
-How does MCP standardize connections between AI applications and tools?
-What challenges did MCP address in AI model integration?
-How does MCP maintain a scalable architecture?
-What is the impact of MCP on AI model efficiency?
-How does MCP enhance the maintainability of AI systems?
-What are the advantages of implementing MCP in AI environments?
+What is the official name of the Constitution of India?
+What is the significance of the Preamble in the Constitution of India?
+Which part of the Constitution deals with the Union and its territory?
+What is the purpose of Article 1 in the Constitution of India?
+Give me weather in Indianapolis?
+Give me weather in Seattle?
+Give me weather in Denver?
+Give me weather in Washington?
+How does the Constitution define the admission or establishment of new States?
+What does Article 3 of the Constitution of India address?
+What is the role of laws made under Articles 2 and 3 regarding the amendment of Schedules?
+Give me weather in Boston?
+Give me weather in El Paso?
+Give me weather in Nashville?
+Give me weather in Detroit?
+What does Article 9 state about persons voluntarily acquiring citizenship of a foreign State?
+How does the Constitution ensure the continuance of the rights of citizenship?
+What authority does Parliament have regarding the regulation of citizenship by law?
+Give me weather in New York?
+Give me weather in Los Angeles?
+Give me weather in Chicago?
+Give me weather in Oklahoma City?
+What is the Constitution (Application to Jammu and Kashmir) Order, 2019?
+What is the significance of the declaration under Article 370(3) of the Constitution?
+What is the format of the sixth pocket size edition of the Constitution of India?
+What abbreviations are commonly used in the Constitution of India?
+Who is responsible for publishing the latest edition of the Constitution?
+What is the diglot form mentioned in the Constitution’s preface?
+What is the role of the Legislative Department, Official Languages Wing in the Constitution’s publication?
+How does the Constitution of India address the amendment process?
+Give me weather in Dallas?
+Give me weather in San Jose?
+Which part of the Constitution covers citizenship?
+What does Article 5 specify about citizenship at the commencement of the Constitution?
+How are the rights of citizenship for migrants from Pakistan addressed in the Constitution?
+What provisions exist for persons of Indian origin residing outside India?
+Give me weather in Austin?
+Give me weather in Jacksonville?
+What is the Constitution (Application to Jammu and Kashmir) Order, 2019?
+What is the significance of the declaration under Article 370(3) of the Constitution?
+What is the format of the sixth pocket size edition of the Constitution of India?
+What abbreviations are commonly used in the Constitution of India?
+Who is responsible for publishing the latest edition of the Constitution?
+Give me weather in Fort Worth?
+Give me weather in Columbus?
+Give me weather in Charlotte?
+Give me weather in San Francisco?
+What is the diglot form mentioned in the Constitution’s preface?
+What is the role of the Legislative Department, Official Languages Wing in the Constitution’s publication?
+How does the Constitution of India address the amendment process?
+Give me weather in Houston?
+Give me weather in Phoenix?
+Give me weather in Philadelphia?
+How many amendments have been incorporated into the Constitution as of the latest edition?
+What is the Constitution (One Hundredth Amendment) Act, 2015 about?
+What details are provided in Appendix I of the Constitution?
+What is artificial intelligence (AI)?
+How does machine learning differ from traditional programming?
+What are the main types of AI models?
+What is the role of large language models (LLMs) in AI?
+How do AI agents reason through ambiguity?
+What are the key challenges in deploying AI systems?
+How can AI be used to automate workflows?
+What are the ethical considerations in AI deployment?
+How do you evaluate the performance of an AI model?
+What is the importance of accuracy in AI model selection?
+What are the core components of an agentic AI system?
+How do agents differ from simpler LLM applications?
+What is the function of external tools or APIs in agentic AI?
+How do explicit instructions and guardrails define agent behavior?
+What orchestration patterns are used in agentic AI?
+When should you use a single agent versus a multi-agent system? 
+What are the benefits of agentic AI in handling unstructured data? 
+How do agents execute multi-step tasks autonomously? 
+What is the process for instantiating an agent using an SDK?
+How do agents interact with users in real-world scenarios?
 exit
