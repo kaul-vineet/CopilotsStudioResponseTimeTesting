@@ -8,7 +8,7 @@ from microsoft_agents.copilotstudio.client import (
     CopilotClient,
 )
 resultsdf = pd.DataFrame(columns=['Serial', 'Query', 'Response', 'Time', 'ConversationId', 'CharLen'])
-resultsaidf = pd.DataFrame(columns=['Serial', 'Query', 'PlannerStep', 'Thought', 'Tool', 'Tool Type'])
+resultsaidf = pd.DataFrame(columns=['Serial', 'Query', 'PlannerStep', 'Thought', 'Tool', 'Tool Type', 'Arguments'])
 import sys
 
 class AgentProcessor:
@@ -16,6 +16,45 @@ class AgentProcessor:
         self.name = name
         self.connection = connection
 
+    @property
+    def data(self):
+        print("Getting data...")
+        return self._value
+
+    def merge_dataframes(self, data):   
+        # Merge the two DataFrames on the 'Serial' column
+        aggregated_df = data.groupby('Query', as_index=False).agg(
+            Steps=('Serial', 'count'),
+            Planner=('PlannerStep', '>>'.join),
+            Thought=('Thought', ''.join),
+            Tool=('Tool', lambda x: ', '.join(x.unique())),
+            Tool_Type=('Tool Type', ''.join),
+            Arguments=('Arguments', ''.join)
+        )
+        return data
+        #return aggregated_df
+
+    def extract_and_format_json_data(self,list_of_dicts, keys_to_extract, separator=", "):
+        if not isinstance(list_of_dicts, list) or not list_of_dicts:
+            return ""
+        formatted_items = []
+        for item in list_of_dicts:
+            # Build the list of key-value pair strings for the current dictionary
+            key_value_pairs = [
+                f"{key}: {item.get(key, 'N/A')}" for key in keys_to_extract
+            ]
+            # Join the key-value pairs for the current dictionary
+            formatted_items.append(separator.join(key_value_pairs))
+
+        # Join the formatted strings for all dictionaries
+        return " \n ".join(formatted_items)
+            
+    def json_concat_simple(self, jsoncat):
+        result = ""
+        for item in jsoncat:
+            result += str(item) + "\n"
+        return result
+    
     async def ask_question_file(self):
         try:
             act = self.connection.start_conversation(True)
@@ -49,8 +88,39 @@ class AgentProcessor:
                         async for reply in replies:
                             if reply.type == ActivityTypes.event:  
                                 print(f" - {reply}")
+                                # ['Serial', 'Query', 'PlannerStep', 'Thought', 'Tool', 'Tool Type', 'Arguments', 'Response']
+                                if reply.value_type == "DynamicPlanReceived":
+                                    resultsaidf.loc[len(resultsaidf)] = [len(resultsaidf) + 1, 
+                                                                         query, 
+                                                                         reply.value_type, 
+                                                                         self.extract_and_format_json_data(reply.value['toolDefinitions'], ['displayName', 'description']),
+                                                                         '', 
+                                                                         self.extract_and_format_json_data(reply.value['toolDefinitions'], ['schemaName']),
+                                                                         '']
                                 if reply.value_type == "DynamicPlanStepTriggered":
-                                    resultsaidf.loc[len(resultsaidf)] = [len(resultsaidf) + 1, query, reply.value_type, reply.value['thought'], reply.value['taskDialogId'], reply.value['type']]
+                                    resultsaidf.loc[len(resultsaidf)] = [len(resultsaidf) + 1, 
+                                                                         query, 
+                                                                         reply.value_type, 
+                                                                         reply.value['thought'], 
+                                                                         reply.value['taskDialogId'], 
+                                                                         reply.value['type'],
+                                                                         '']
+                                elif reply.value_type == "DynamicPlanStepBindUpdate":
+                                    resultsaidf.loc[len(resultsaidf)] = [len(resultsaidf) + 1, 
+                                                                         query, 
+                                                                         reply.value_type, 
+                                                                         '', 
+                                                                         reply.value['taskDialogId'], 
+                                                                         '', 
+                                                                         str(reply.value['arguments'])]
+                                elif reply.value_type == "DynamicPlanStepFinished":
+                                    resultsaidf.loc[len(resultsaidf)] = [len(resultsaidf) + 1, 
+                                                                         query, 
+                                                                         reply.value_type, 
+                                                                         '', 
+                                                                         reply.value['taskDialogId'], 
+                                                                         '', 
+                                                                         '']    
                             if reply.type == ActivityTypes.message:
                                 print(f"\n{reply.text}")
                                 if reply.suggested_actions:
@@ -73,24 +143,21 @@ class AgentProcessor:
                             resultsdf['Time'].std(),
                             resultsdf.sort_index(),
                             resultsdf.sort_index(),
-                            resultsaidf.sort_index(),
-                            resultsdf.sort_index(),
+                            self.merge_dataframes(resultsaidf.sort_index()),
                             resultsdf['CharLen'].corr(resultsdf['Time'])
                         )
             yield (
                 gr.update(interactive=True),
-                    "Processing " + str(linecount) + " of " + str(len(resultsdf)) + " records.",
-                    resultsdf['Time'].mean(),
-                    resultsdf['Time'].median(),
-                    resultsdf['Time'].max(),
-                    resultsdf['Time'].min(),
-                    resultsdf['Time'].std(),
-                    resultsdf.sort_index(),
-                    resultsdf.sort_index(),
-                    resultsaidf.sort_index(),
-                    resultsaidf.sort_index(),
-                    resultsdf.sort_index(),
-                    resultsdf['CharLen'].corr(resultsdf['Time'])
+                "Processing " + str(linecount) + " of " + str(len(resultsdf)) + " records.",
+                resultsdf['Time'].mean(),
+                resultsdf['Time'].median(),
+                resultsdf['Time'].max(),
+                resultsdf['Time'].min(),
+                resultsdf['Time'].std(),
+                resultsdf.sort_index(),
+                resultsdf.sort_index(),
+                self.merge_dataframes(resultsaidf.sort_index()),
+                resultsdf['CharLen'].corr(resultsdf['Time'])
             )
         except Exception as e:
             print(f"Error: {e}")
@@ -104,7 +171,6 @@ class AgentProcessor:
                 resultsdf['Time'].std() if not resultsdf.empty else 0,
                 resultsdf.sort_index() if not resultsdf.empty else pd.DataFrame(),
                 resultsdf.sort_index() if not resultsdf.empty else pd.DataFrame(),
-                resultsaidf.sort_index() if not resultsaidf.empty else pd.DataFrame(),
-                resultsdf.sort_index() if not resultsdf.empty else pd.DataFrame(),
+                self.merge_dataframes(resultsaidf.sort_index()) if not resultsaidf.empty else pd.DataFrame(),
                 resultsdf['CharLen'].corr(resultsdf['Time']) if len(resultsdf) > 1 else 0
             )

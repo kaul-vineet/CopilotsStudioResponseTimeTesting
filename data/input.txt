@@ -1,6 +1,17 @@
+What are the benefits of using MCP for financial analysis?
+How do I troubleshoot issues with MCP server integration in Cursor?
+exit
+What are the ethical considerations in AI deployment?
 What is the official name of the Constitution of India?
 What is the significance of the Preamble in the Constitution of India?
 Which part of the Constitution deals with the Union and its territory?
+What is the Model Context Protocol (MCP) server and how does it work?
+How do I set up a 100% local MCP client?
+What are the main components of MCP architecture?
+How can I run an agent to interact with a SQLite MCP server?
+What tools are available for MCP server integration?
+How do I add a new global MCP server in Cursor?
+What is the JSON configuration needed for integrating a financial analyst MCP server?
 What is the purpose of Article 1 in the Constitution of India?
 Give me weather in Indianapolis?
 Give me weather in Seattle?
@@ -16,6 +27,16 @@ Give me weather in Detroit?
 What does Article 9 state about persons voluntarily acquiring citizenship of a foreign State?
 How does the Constitution ensure the continuance of the rights of citizenship?
 What authority does Parliament have regarding the regulation of citizenship by law?
+How does the MCP server process user input and interact with a database?
+What is the process for confirming that my MCP server is live and connected to Cursor?
+Where can I find the source code for building a local MCP client?
+What are the steps to integrate MCP server with Cursor for financial analysis?
+How do I use the uvicorn command to run an MCP server?
+What does the Cursor Settings interface look like when an MCP server is added?
+How can I fetch data from a database using an MCP-powered agent?
+What are the available MCP-powered projects described in the documentation?
+How do I add and retrieve data using an MCP agent?
+What is the role of structured objects in MCP server interactions?
 Give me weather in New York?
 Give me weather in Los Angeles?
 Give me weather in Chicago?
@@ -24,6 +45,8 @@ What is the Constitution (Application to Jammu and Kashmir) Order, 2019?
 What is the significance of the declaration under Article 370(3) of the Constitution?
 What is the format of the sixth pocket size edition of the Constitution of India?
 What abbreviations are commonly used in the Constitution of India?
+How do I access the code repository for MCP server projects?
+What is the function of the QR code provided in the MCP server documentation?
 Who is responsible for publishing the latest edition of the Constitution?
 What is the diglot form mentioned in the Constitution’s preface?
 What is the role of the Legislative Department, Official Languages Wing in the Constitution’s publication?
@@ -36,6 +59,8 @@ How are the rights of citizenship for migrants from Pakistan addressed in the Co
 What provisions exist for persons of Indian origin residing outside India?
 Give me weather in Austin?
 Give me weather in Jacksonville?
+How do I set the server path in the MCP server configuration?
+What is the difference between a host, client, and server in MCP architecture?
 What is the Constitution (Application to Jammu and Kashmir) Order, 2019?
 What is the significance of the declaration under Article 370(3) of the Constitution?
 What is the format of the sixth pocket size edition of the Constitution of India?
@@ -61,7 +86,6 @@ What is the role of large language models (LLMs) in AI?
 How do AI agents reason through ambiguity?
 What are the key challenges in deploying AI systems?
 How can AI be used to automate workflows?
-What are the ethical considerations in AI deployment?
 How do you evaluate the performance of an AI model?
 What is the importance of accuracy in AI model selection?
 What are the core components of an agentic AI system?

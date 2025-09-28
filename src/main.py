@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 TOKEN_CACHE = LocalTokenCache("./.local_token_cache.json")
 resultsdf = pd.DataFrame(columns=['Serial', 'Query', 'Response', 'Time', 'ConversationId', 'CharLen'])
-resultsaidf = pd.DataFrame(columns=['Serial', 'Query', 'PlannerStep', 'Thought', 'Tool', 'Tool Type'])
+resultsaidf = pd.DataFrame(columns=['Serial', 'Query', 'PlannerStep', 'Thought', 'Tool', 'Tool Type', 'Arguments'])
 statsdf = pd.DataFrame(columns=['Serial', 'Mean', 'Median', 'Max', 'Min', 'Deviation'])
     
 async def open_browser(url: str):
@@ -98,18 +98,20 @@ async def ainput(string: str) -> str:
         None, lambda s=string: sys.stdout.write(s + " ")
     )
     return await asyncio.get_event_loop().run_in_executor(None, sys.stdin.readline)
-
-  
+      
 with gr.Blocks() as demo:
     with gr.Row():
         gr.Markdown("# Copilot Studio Agent Performance Studio")
 
-    with gr.Tab("Status"):
-        btn = gr.Button(value="Run", interactive=True)
-        process_status = gr.Textbox(label="Status")
-        
+ 
     with gr.Tab("Statistics"):
+        with gr.Row():
+            btn = gr.Button("Start Processing")
+        
+        with gr.Row():    
+            process_status = gr.Textbox(label="Process Status", interactive=False)
         gr.Markdown("## Response Statistics")
+        
         with gr.Row():
             mean_output = gr.Number(label="Mean")
             median_output = gr.Number(label="Median")
@@ -120,15 +122,9 @@ with gr.Blocks() as demo:
             
         with gr.Row():
             gr.Markdown("## The agent's responses and the time taken for each response.")
+        
         with gr.Row():    
             lineplot_output = gr.LinePlot(resultsdf, x="Serial", y="Time", title="Response Time per Query", x_label="Query Serial", y_label="Response Time (seconds)", width=800, height=400)
-        with gr.Row():
-            # Create a BarPlot aggregating 'value' by 15-second intervals
-            lineplot_output_bin= gr.BarPlot(resultsaidf, x="Serial", y="Times", x_bin="15sec", y_aggregate="mean")
-        with gr.Row():    
-            # Optional: Add a Radio button to dynamically change the bin size
-            bin_size_radio = gr.Radio(["10sec", "15sec", "20sec", "30sec", "1min"], label="Bin Size")
-            bin_size_radio.change(lambda bin_size: gr.BarPlot(x_bin=bin_size), bin_size_radio, lineplot_output_bin)
 
     with gr.Tab("Data"):
         with gr.Row():
@@ -157,9 +153,9 @@ with gr.Blocks() as demo:
                  lineplot_output, 
                  frame_output, 
                  frameai_output, 
-                 lineplot_output_bin,
                  dev_corr]
     )
+    
     
 if __name__ == "__main__":
     demo.launch()
