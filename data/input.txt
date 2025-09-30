@@ -1,3 +1,4 @@
+How can I run an agent to interact with a SQLite MCP server?
 What are the benefits of using MCP for financial analysis?
 How do I troubleshoot issues with MCP server integration in Cursor?
 What are the ethical considerations in AI deployment?
@@ -7,7 +8,6 @@ Which part of the Constitution deals with the Union and its territory?
 What is the Model Context Protocol (MCP) server and how does it work?
 How do I set up a 100% local MCP client?
 What are the main components of MCP architecture?
-How can I run an agent to interact with a SQLite MCP server?
 What tools are available for MCP server integration?
 How do I add a new global MCP server in Cursor?
 What is the JSON configuration needed for integrating a financial analyst MCP server?

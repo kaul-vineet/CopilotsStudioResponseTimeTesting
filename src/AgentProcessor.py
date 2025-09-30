@@ -62,7 +62,8 @@ class AgentProcessor:
         ax.set_title("Response Time Box Plot")
         ax.set_xlabel("Query")
         ax.set_ylabel("Values")
-        
+        ax.set_axis_on()
+        ax.set_facecolor('white')
         # You can also add grid lines for better readability
         ax.yaxis.grid(True)
         return fig
@@ -84,20 +85,23 @@ class AgentProcessor:
                 for line in file:
                     linecount = sum(1 for _ in file)
                 print(f"\nTotal lines in file: {linecount}\n")
-                yield (
-                    gr.update(interactive=False),
-                    "Processing " + str(len(resultsdf)) + " records.",
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    resultsaidf,
-                    resultsdf,
-                    resultsaidf,
-                    0,
-                    self.generate_boxplot(resultsdf['Time']) if not resultsdf.empty else plt.figure()
-                )
+            resultsaidf.drop(index=resultsaidf.index, inplace=True)
+            resultsdf.drop(index=resultsdf.index, inplace=True)
+            yield (
+                gr.update(interactive=False),
+                gr.update(interactive=True),
+                "Processing " + str(linecount) + " records.",
+                0,
+                0,
+                0,
+                0,
+                0,
+                resultsaidf,
+                resultsdf,
+                resultsaidf,
+                0,
+                self.generate_boxplot(resultsdf['Time']) if not resultsdf.empty else plt.figure()
+            )
                 # Iterate through each line in the file
             with (open('./data/input.txt', 'r', encoding='utf-8') as file):
                 for line in file:
@@ -112,6 +116,8 @@ class AgentProcessor:
                         resultsdf.to_csv(f"./data/{filename}", index=False)
                         print(f"CSV file '{filename}' created successfully.")
                         yield (
+                            gr.update(interactive=True),
+                            gr.update(interactive=True),  
                             "Processed " + str(linecount) + " of " + str(len(resultsdf)) + " records. Completed",
                             resultsdf['Time'].mean(),
                             resultsdf['Time'].median(),
@@ -138,7 +144,7 @@ class AgentProcessor:
                                                                          query, 
                                                                          reply.value_type, 
                                                                          self.extract_and_format_json_data(reply.value['toolDefinitions'], ['displayName', 'description']),
-                                                                         self.extract_and_format_json_data(reply.value['toolDefinitions'], ['schemaName']) if len(self.extract_and_format_json_data(reply.value['toolDefinitions'], ['schemaName'])) > 0 else self.extract_and_format_json_data_without_keys(reply.value['steps']),
+                                                                         self.extract_and_format_json_data(reply.value['toolDefinitions'], ['schemaName']) +  self.extract_and_format_json_data_without_keys(reply.value['steps']),
                                                                          '']
                                 if reply.value_type == "DynamicPlanStepTriggered":
                                     resultsaidf.loc[len(resultsaidf)] = [len(resultsaidf) + 1, 
@@ -154,7 +160,7 @@ class AgentProcessor:
                                                                          reply.value_type, 
                                                                          '', 
                                                                          reply.value['taskDialogId'], 
-                                                                         reply.value['arguments']]
+                                                                         str(reply.value['arguments'])]
                                 elif reply.value_type == "DynamicPlanStepFinished":
                                     resultsaidf.loc[len(resultsaidf)] = [len(resultsaidf) + 1, 
                                                                          query, 
@@ -174,8 +180,10 @@ class AgentProcessor:
                         elapsed_time = end_time - start_time
                         print(f"Total time taken for both steps: {elapsed_time:.6f} seconds")
                         resultsdf.loc[len(resultsdf)] = [len(resultsdf) + 1, query, reply.text, elapsed_time, action.conversation.id, len(reply.text)]
+                        
                         yield (
                             gr.update(interactive=False),
+                            gr.update(interactive=True),
                             "Processing " + str(len(resultsdf)) + " of " + str(linecount) + " records.",
                             resultsdf['Time'].mean(),
                             resultsdf['Time'].median(),
@@ -190,6 +198,7 @@ class AgentProcessor:
                         )
             yield (
                 gr.update(interactive=True),
+                gr.update(interactive=False),
                 "Processed " + str(linecount) + " of " + str(len(resultsdf)) + " records. Completed",
                 resultsdf['Time'].mean(),
                 resultsdf['Time'].median(),
@@ -201,11 +210,12 @@ class AgentProcessor:
                 self.merge_dataframes(resultsaidf.sort_index()),
                 resultsdf['CharLen'].corr(resultsdf['Time']),
                 self.generate_boxplot(resultsdf['Time']) if not resultsdf.empty else plt.figure()
-            )
+            )   
         except Exception as e:
             print(f"Error: {e}")
             yield (
                 gr.update(interactive=True),
+                gr.update(interactive=False),     
                 f"Error: {e}" + " - Exiting..." + str(len(resultsdf)) + " of " + str(linecount) + " records." + "\n" + e.__traceback__.tb_frame.f_code.co_name + " - " + str(e.__traceback__.tb_lineno),
                 resultsdf['Time'].mean() if not resultsdf.empty else 0,
                 resultsdf['Time'].median() if not resultsdf.empty else 0,

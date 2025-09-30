@@ -8,6 +8,7 @@ ms_agents_logger = logging.getLogger("microsoft_agents")
 ms_agents_logger.addHandler(logging.StreamHandler())
 ms_agents_logger.setLevel(logging.INFO)
 
+from src.theme_dropdown import create_theme_dropdown  # noqa: F401
 import sys
 from os import environ
 import asyncio
@@ -99,14 +100,13 @@ async def ainput(string: str) -> str:
     )
     return await asyncio.get_event_loop().run_in_executor(None, sys.stdin.readline)
       
-with gr.Blocks() as demo:
+with gr.Blocks(theme='shivi/calm_seafoam') as demo:
     with gr.Row():
         gr.Markdown("# Copilot Studio Agent Performance Studio")
 
- 
     with gr.Tab("Statistics"):
         with gr.Row():
-            btn = gr.Button("Start Processing")
+            btn = gr.Button("Start Test Run", variant="primary")
         
         with gr.Row():    
             process_status = gr.Textbox(label="Process Status", interactive=False)
@@ -121,17 +121,12 @@ with gr.Blocks() as demo:
             dev_corr = gr.Number(label="Token Corr")
             
         with gr.Row():
-            gr.Markdown("## Time taken for each response.")
-        
-        with gr.Row():    
+            gr.Markdown("## Response Time Analysis")  
+        with gr.Row(): 
             lineplot_output = gr.LinePlot(resultsdf, x="Serial", y="Time", title="Response Time per Query", x_label="Query Serial", y_label="Response Time (seconds)", width=800, height=400)
-
-        with gr.Row():
-            gr.Markdown("## Box Plot of Response Times")
-            # The gr.Plot() component is the output
             output_plot_whisker = gr.Plot()
-    
-    with gr.Tab("Data"):
+
+    with gr.Tab("Data", interactive=False) as tb:
         with gr.Row():
             gr.Markdown("## Query Response / Time Data")
         with gr.Row():
@@ -149,6 +144,7 @@ with gr.Blocks() as demo:
         fn=proc.ask_question_file,
         inputs=[],
         outputs=[btn, 
+                 tb,
                  process_status, 
                  mean_output, 
                  median_output, 
