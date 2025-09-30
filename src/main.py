@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 TOKEN_CACHE = LocalTokenCache("./.local_token_cache.json")
 resultsdf = pd.DataFrame(columns=['Serial', 'Query', 'Response', 'Time', 'ConversationId', 'CharLen'])
-resultsaidf = pd.DataFrame(columns=['Serial', 'Query', 'PlannerStep', 'Thought', 'Tool', 'Tool Type', 'Arguments'])
+resultsaidf = pd.DataFrame(columns=['Serial', 'Query', 'PlannerStep', 'Thought', 'Tool', 'Arguments'])
 statsdf = pd.DataFrame(columns=['Serial', 'Mean', 'Median', 'Max', 'Min', 'Deviation'])
     
 async def open_browser(url: str):
@@ -121,11 +121,16 @@ with gr.Blocks() as demo:
             dev_corr = gr.Number(label="Token Corr")
             
         with gr.Row():
-            gr.Markdown("## The agent's responses and the time taken for each response.")
+            gr.Markdown("## Time taken for each response.")
         
         with gr.Row():    
             lineplot_output = gr.LinePlot(resultsdf, x="Serial", y="Time", title="Response Time per Query", x_label="Query Serial", y_label="Response Time (seconds)", width=800, height=400)
 
+        with gr.Row():
+            gr.Markdown("## Box Plot of Response Times")
+            # The gr.Plot() component is the output
+            output_plot_whisker = gr.Plot()
+    
     with gr.Tab("Data"):
         with gr.Row():
             gr.Markdown("## Query Response / Time Data")
@@ -153,8 +158,9 @@ with gr.Blocks() as demo:
                  lineplot_output, 
                  frame_output, 
                  frameai_output, 
-                 dev_corr]
-    )
+                 dev_corr,
+                 output_plot_whisker]
+        )
     
     
 if __name__ == "__main__":

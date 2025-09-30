@@ -1,6 +1,5 @@
 What are the benefits of using MCP for financial analysis?
 How do I troubleshoot issues with MCP server integration in Cursor?
-exit
 What are the ethical considerations in AI deployment?
 What is the official name of the Constitution of India?
 What is the significance of the Preamble in the Constitution of India?
@@ -17,6 +16,7 @@ Give me weather in Indianapolis?
 Give me weather in Seattle?
 Give me weather in Denver?
 Give me weather in Washington?
+exit
 How does the Constitution define the admission or establishment of new States?
 What does Article 3 of the Constitution of India address?
 What is the role of laws made under Articles 2 and 3 regarding the amendment of Schedules?
