@@ -76,6 +76,7 @@ class AgentProcessor:
     
     async def ask_question_file(self):
         try:
+            linecount = 0
             act = self.connection.start_conversation(True)
             print("\nSuggested Actions: ")
             async for action in act:
@@ -176,26 +177,26 @@ class AgentProcessor:
                             elif reply.type == ActivityTypes.end_of_conversation:
                                 print("\nEnd of conversation.")
                                 sys.exit(0)
-                        end_time = time.perf_counter()
-                        elapsed_time = end_time - start_time
-                        print(f"Total time taken for both steps: {elapsed_time:.6f} seconds")
-                        resultsdf.loc[len(resultsdf)] = [len(resultsdf) + 1, query, reply.text, elapsed_time, action.conversation.id, len(reply.text)]
-                        
-                        yield (
-                            gr.update(interactive=False),
-                            gr.update(interactive=True),
-                            "Processing " + str(len(resultsdf)) + " of " + str(linecount) + " records.",
-                            resultsdf['Time'].mean(),
-                            resultsdf['Time'].median(),
-                            resultsdf['Time'].max(),
-                            resultsdf['Time'].min(),
-                            resultsdf['Time'].std(),
-                            resultsdf.sort_index(),
-                            resultsdf.sort_index(),
-                            self.merge_dataframes(resultsaidf.sort_index()),
-                            resultsdf['CharLen'].corr(resultsdf['Time']),
-                            self.generate_boxplot(resultsdf['Time']) if not resultsdf.empty else plt.figure()
-                        )
+                        if reply.text is not None:        
+                            end_time = time.perf_counter()
+                            elapsed_time = end_time - start_time
+                            print(f"Total time taken: {elapsed_time:.6f} seconds")
+                            resultsdf.loc[len(resultsdf)] = [len(resultsdf) + 1, query, reply.text, elapsed_time, action.conversation.id, len(reply.text)]
+                            yield (
+                                gr.update(interactive=False),
+                                gr.update(interactive=True),
+                                "Processing " + str(len(resultsdf)) + " of " + str(linecount) + " records.",
+                                resultsdf['Time'].mean(),
+                                resultsdf['Time'].median(),
+                                resultsdf['Time'].max(),
+                                resultsdf['Time'].min(),
+                                resultsdf['Time'].std(),
+                                resultsdf.sort_index(),
+                                resultsdf.sort_index(),
+                                self.merge_dataframes(resultsaidf.sort_index()),
+                                resultsdf['CharLen'].corr(resultsdf['Time']),
+                                self.generate_boxplot(resultsdf['Time']) if not resultsdf.empty else plt.figure()
+                            )
             yield (
                 gr.update(interactive=True),
                 gr.update(interactive=False),
