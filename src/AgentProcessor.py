@@ -1,8 +1,6 @@
 import gradio as gr
 import time
-import asyncio
 import pandas as pd
-import ast
 from microsoft_agents.activity import ActivityTypes, load_configuration_from_env
 from microsoft_agents.copilotstudio.client import (
     ConnectionSettings,
@@ -10,7 +8,7 @@ from microsoft_agents.copilotstudio.client import (
 )
 import matplotlib.pyplot as plt
 import numpy as np
-resultsdf = pd.DataFrame(columns=['Serial', 'Query', 'Response', 'Time', 'ConversationId', 'CharLen'])
+resultsdf = pd.DataFrame(columns=['Serial', 'Query', 'Response', 'Time','Char-Len'])
 resultsaidf = pd.DataFrame(columns=['Serial', 'Query', 'PlannerStep', 'Thought', 'Tool', 'Arguments'])
 import sys
 
@@ -109,7 +107,7 @@ class AgentProcessor:
                     # Process each line (e.g., print it, manipulate it)
                     query = line.strip() # .strip() removes leading/trailing whitespace, including the newline character
                     print(f" - {query}")
-                    if query in ["exit", "quit"]:
+                    if query in ["exit", "quit", "EXIT"]:
                         timestamp_str = time.strftime("%Y-%m-%d_%H-%M-%S")
                         # Construct the filename with a desired extension
                         filename = f"{action.conversation.id}_{timestamp_str}.csv"
@@ -119,26 +117,26 @@ class AgentProcessor:
                         yield (
                             gr.update(interactive=True),
                             gr.update(interactive=True),  
-                            "Processed " + str(linecount) + " of " + str(len(resultsdf)) + " records. Completed",
-                            resultsdf['Time'].mean(),
-                            resultsdf['Time'].median(),
-                            resultsdf['Time'].max(),
-                            resultsdf['Time'].min(),
-                            resultsdf['Time'].std(),
+                            "Processed " + str(linecount) + " of " + str(len(resultsdf)) + " records for conversation " + action.conversation.id,
+                            resultsdf['Time'].mean().round(2),
+                            resultsdf['Time'].median().round(2),
+                            resultsdf['Time'].max().round(2),
+                            resultsdf['Time'].min().round(2),
+                            resultsdf['Time'].std().round(2),
                             resultsdf.sort_index(),
                             resultsdf.sort_index(),
                             self.merge_dataframes(resultsaidf.sort_index()),
-                            resultsdf['CharLen'].corr(resultsdf['Time']),
+                            resultsdf['Char-Len'].corr(resultsdf['Time']),
                             self.generate_boxplot(resultsdf['Time']) if not resultsdf.empty else plt.figure()
                         )
                         print("Exiting...")
-                        sys.exit(0)
-                    if query:
+                        break
+                    if query not in ["exit", "quit", "EXIT"]:
                         start_time = time.perf_counter()
                         replies = self.connection.ask_question(query, action.conversation.id)
                         async for reply in replies:
                             if reply.type == ActivityTypes.event:  
-                                # print(f" - {reply}")
+                                print(f" - {reply}")
                                 # ['Serial', 'Query', 'PlannerStep', 'Thought', 'Tool', 'Arguments']
                                 if reply.value_type == "DynamicPlanReceived":
                                     resultsaidf.loc[len(resultsaidf)] = [len(resultsaidf) + 1, 
@@ -155,7 +153,6 @@ class AgentProcessor:
                                                                          reply.value['taskDialogId'], 
                                                                          '']
                                 elif reply.value_type == "DynamicPlanStepBindUpdate":
-                                    print(f" - {reply}")
                                     resultsaidf.loc[len(resultsaidf)] = [len(resultsaidf) + 1, 
                                                                          query, 
                                                                          reply.value_type, 
@@ -169,47 +166,48 @@ class AgentProcessor:
                                                                          '', 
                                                                          reply.value['taskDialogId'], 
                                                                          '']    
-                            if reply.type == ActivityTypes.message:
+                            elif reply.type == ActivityTypes.message:
                                 print(f"\n{reply.text}")
                                 if reply.suggested_actions:
                                     for action in reply.suggested_actions.actions:
                                         print(f" - {action.title}")
+                                if reply.text is not None and reply.type == ActivityTypes.message:
+                                    print(f"\n{reply.text}" + "\n --- Final Response ---\n")        
+                                    end_time = time.perf_counter()
+                                    elapsed_time = end_time - start_time
+                                    print(f"Total time taken: {elapsed_time:.6f} seconds")
+                                    resultsdf.loc[len(resultsdf)] = [len(resultsdf) + 1, query, reply.text, elapsed_time.__round__(2), len(reply.text)]
+                                    yield (
+                                        gr.update(interactive=False),
+                                        gr.update(interactive=True),
+                                        "Processing " + str(len(resultsdf)) + " of " + str(linecount) + " records for conversation " + action.conversation.id,
+                                        resultsdf['Time'].mean().round(2),
+                                        resultsdf['Time'].median().round(2),
+                                        resultsdf['Time'].max().round(2),
+                                        resultsdf['Time'].min().round(2),
+                                        resultsdf['Time'].std().round(2),
+                                        resultsdf.sort_index(),
+                                        resultsdf.sort_index(),
+                                        self.merge_dataframes(resultsaidf.sort_index()),
+                                        resultsdf['Char-Len'].corr(resultsdf['Time']),
+                                        self.generate_boxplot(resultsdf['Time']) if not resultsdf.empty else plt.figure()
+                                    )
                             elif reply.type == ActivityTypes.end_of_conversation:
                                 print("\nEnd of conversation.")
-                                sys.exit(0)
-                        if reply.text is not None:        
-                            end_time = time.perf_counter()
-                            elapsed_time = end_time - start_time
-                            print(f"Total time taken: {elapsed_time:.6f} seconds")
-                            resultsdf.loc[len(resultsdf)] = [len(resultsdf) + 1, query, reply.text, elapsed_time, action.conversation.id, len(reply.text)]
-                            yield (
-                                gr.update(interactive=False),
-                                gr.update(interactive=True),
-                                "Processing " + str(len(resultsdf)) + " of " + str(linecount) + " records.",
-                                resultsdf['Time'].mean(),
-                                resultsdf['Time'].median(),
-                                resultsdf['Time'].max(),
-                                resultsdf['Time'].min(),
-                                resultsdf['Time'].std(),
-                                resultsdf.sort_index(),
-                                resultsdf.sort_index(),
-                                self.merge_dataframes(resultsaidf.sort_index()),
-                                resultsdf['CharLen'].corr(resultsdf['Time']),
-                                self.generate_boxplot(resultsdf['Time']) if not resultsdf.empty else plt.figure()
-                            )
+                                break
             yield (
                 gr.update(interactive=True),
-                gr.update(interactive=False),
-                "Processed " + str(linecount) + " of " + str(len(resultsdf)) + " records. Completed",
-                resultsdf['Time'].mean(),
-                resultsdf['Time'].median(),
-                resultsdf['Time'].max(),
-                resultsdf['Time'].min(),
-                resultsdf['Time'].std(),
+                gr.update(interactive=True),
+                "Processed " + str(linecount) + " of " + str(len(resultsdf)) + " records for conversation " + action.conversation.id,
+                resultsdf['Time'].mean().round(2),
+                resultsdf['Time'].median().round(2),
+                resultsdf['Time'].max().round(2),
+                resultsdf['Time'].min().round(2),
+                resultsdf['Time'].std().round(2),
                 resultsdf.sort_index(),
                 resultsdf.sort_index(),
                 self.merge_dataframes(resultsaidf.sort_index()),
-                resultsdf['CharLen'].corr(resultsdf['Time']),
+                resultsdf['Char-Len'].corr(resultsdf['Time']),
                 self.generate_boxplot(resultsdf['Time']) if not resultsdf.empty else plt.figure()
             )   
         except Exception as e:
@@ -226,6 +224,6 @@ class AgentProcessor:
                 resultsdf.sort_index() if not resultsdf.empty else pd.DataFrame(),
                 resultsdf.sort_index() if not resultsdf.empty else pd.DataFrame(),
                 self.merge_dataframes(resultsaidf.sort_index()) if not resultsaidf.empty else pd.DataFrame(),
-                resultsdf['CharLen'].corr(resultsdf['Time']) if len(resultsdf) > 1 else 0,
+                resultsdf['Char-Len'].corr(resultsdf['Time']) if len(resultsdf) > 1 else 0,
                 self.generate_boxplot(resultsdf['Time']) if not resultsdf.empty else plt.figure()
             )

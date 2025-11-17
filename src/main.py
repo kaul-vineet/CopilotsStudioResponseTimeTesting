@@ -33,7 +33,7 @@ from .local_token_cache import LocalTokenCache
 logger = logging.getLogger(__name__)
 load_dotenv()
 TOKEN_CACHE = LocalTokenCache("./.local_token_cache.json")
-resultsdf = pd.DataFrame(columns=['Serial', 'Query', 'Response', 'Time', 'ConversationId', 'CharLen'])
+resultsdf = pd.DataFrame(columns=['Serial', 'Query', 'Response', 'Time', 'ConversationId', 'Char-Len'])
 resultsaidf = pd.DataFrame(columns=['Serial', 'Query', 'PlannerStep', 'Thought', 'Tool', 'Arguments'])
 statsdf = pd.DataFrame(columns=['Serial', 'Mean', 'Median', 'Max', 'Min', 'Deviation'])
     
@@ -127,11 +127,12 @@ with gr.Blocks(theme='shivi/calm_seafoam') as demo:
             output_plot_whisker = gr.Plot()
 
     with gr.Tab("Data", interactive=False) as tb:
+        # Applying style to highlight the maximum value in each row
         with gr.Row():
             gr.Markdown("## Query Response / Time Data")
         with gr.Row():
             frame_output = gr.DataFrame(wrap=True,  # Enable text wrapping within cells
-                                        label="Query Response / Time Data")
+                                        label="Query Response / Time Data", column_widths={"Response": "300px"}, show_search=True)
         with gr.Row():
             gr.Markdown("## LLM Planner Steps Data")
         with gr.Row():    
